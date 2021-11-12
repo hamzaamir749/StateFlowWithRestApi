@@ -4,8 +4,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.androiddeveloperquiz.Adapters.EventsAdapter
+import com.androiddeveloperquiz.Models.EventsModel
 import com.androiddeveloperquiz.Utils.ApiState
 import com.androiddeveloperquiz.ViewModels.EventsViewModel
 import com.androiddeveloperquiz.databinding.ActivityMainBinding
@@ -16,50 +20,22 @@ import kotlinx.coroutines.flow.collect
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
-    private val dictionaryViewModel: EventsViewModel by viewModels()
+    private val eventViewModel: EventsViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
+    lateinit var adapter: EventsAdapter
+    lateinit var list: ArrayList<EventsModel>
 
     @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        /*dictionaryViewModel.getEvents()
-        dictionaryViewModel.response.observe(this, {
-            when (it?.status) {
-                Status.LOADING -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                }
-                Status.ERROR -> {
-                    binding.progressBar.visibility = View.GONE
-                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, "Error: " + it.message)
-
-                }
-                Status.SUCCESS -> {
-                    binding.progressBar.visibility = View.GONE
-
-
-                    for (mydata in it.data!!) {
-                        Log.d(TAG, "SUCCESS   :  data   " + mydata.actor.avatar_url)
-                        Log.d(TAG, "SUCCESS   :  data   " + mydata.actor.id)
-                        Log.d(TAG, "SUCCESS   :  data   " + mydata.actor.login)
-                        Log.d(TAG, "SUCCESS   :  data   " + mydata.actor.url)
-                    }
-                    Toast.makeText(this, "Data Receive" + it.data, Toast.LENGTH_SHORT).show()
-                }
-                else -> binding.progressBar.visibility = View.VISIBLE
-            }
-        })
-*/
-        dictionaryViewModel.getEvents()
-        handleResponse()
+        initViews()
     }
 
     private fun handleResponse() {
         lifecycleScope.launchWhenStarted {
-            dictionaryViewModel.apiStateFlow.collect {
+            eventViewModel.apiStateFlow.collect {
                 when (it) {
                     is ApiState.Loading -> {
                         binding.apply {
@@ -67,23 +43,25 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     is ApiState.Success -> {
-
-                        Log.d(TAG, "handleResponse: " + it.response.toString())
                         binding.apply {
                             progressBar.visibility = View.GONE
+                            recyclerView.visibility=View.VISIBLE
                         }
-                        /*    Log.d("main", "handleResponse: ${it.response}")
-                            postAdapter.submitList(it.response)*/
+                        runOnUiThread {
+                            adapter.addItems(it.response)
+                            adapter.notifyDataSetChanged()
+                        }
                     }
                     is ApiState.Failure -> {
                         Log.d(TAG, "handleResponse: " + it.error)
                         binding.apply {
                             progressBar.visibility = View.GONE
                         }
+                        Toast.makeText(this@MainActivity, "Error: ${it.error}", Toast.LENGTH_SHORT)
+                            .show()
 
                     }
                     is ApiState.Empty -> {
-                        Log.d(TAG, "handleResponse: Empty")
                         binding.apply {
                             progressBar.visibility = View.GONE
                         }
@@ -91,5 +69,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    @InternalCoroutinesApi
+    private fun initViews() {
+        list = ArrayList()
+        adapter = EventsAdapter(list)
+        binding.apply {
+            recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
+            recyclerView.adapter = adapter
+        }
+
+
+        eventViewModel.getEvents()
+        handleResponse()
     }
 }

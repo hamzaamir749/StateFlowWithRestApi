@@ -14,9 +14,6 @@
         android:theme="@style/Theme.AndroidDeveloperQuiz"
         tools:ignore="AllowBackup">
         <activity
-            android:name=".Ui.SplashScreenActivity"
-            android:exported="false" />
-        <activity
             android:name=".Ui.MainActivity"
             android:exported="true">
             <intent-filter>
