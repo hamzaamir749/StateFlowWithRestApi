@@ -26,7 +26,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDictionaryRepository(apiInterface: ApiInterface): EventsRepository {
+    fun provideEventsRepository(apiInterface: ApiInterface): EventsRepository {
         return EventsRepository(apiInterface)
     }
 
