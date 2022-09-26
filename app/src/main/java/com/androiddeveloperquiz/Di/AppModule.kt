@@ -1,11 +1,14 @@
 package com.androiddeveloperquiz.Di
 
+import android.content.Context
+import com.androiddeveloperquiz.Adapters.EventsAdapter
 import com.androiddeveloperquiz.Network.ApiInterface
+import com.androiddeveloperquiz.R
 import com.androiddeveloperquiz.Repositories.EventsRepository
-import com.androiddeveloperquiz.Utils.GlobalVariables
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -17,8 +20,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRetrofitInterface(): ApiInterface {
-        return Retrofit.Builder().baseUrl(GlobalVariables.BASE_URL)
+    fun provideRetrofitInterface(@ApplicationContext context: Context): ApiInterface {
+        return Retrofit.Builder().baseUrl(context.getString(R.string.BASE_URL))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiInterface::class.java)
@@ -28,6 +31,12 @@ object AppModule {
     @Singleton
     fun provideEventsRepository(apiInterface: ApiInterface): EventsRepository {
         return EventsRepository(apiInterface)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEventsAdapter(): EventsAdapter {
+        return EventsAdapter()
     }
 
 }

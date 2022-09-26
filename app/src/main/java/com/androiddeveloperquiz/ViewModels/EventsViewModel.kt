@@ -25,8 +25,14 @@ class EventsViewModel @Inject constructor(private val repository: EventsReposito
             }
             .catch { e ->
                 _apiStateFlow.value = ApiState.Failure(e)
-            }.collect { response->
-            _apiStateFlow.value = ApiState.Success(response)
-        }
+            }.collect { response ->
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        _apiStateFlow.value = ApiState.Success(it)
+                    }
+                } else {
+                    _apiStateFlow.value = ApiState.Error("Something went wrong")
+                }
+            }
     }
 }
